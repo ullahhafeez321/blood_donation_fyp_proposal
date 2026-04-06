@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Year Project Proposal — AI-Based Blood Donation System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        blood: {
+                            50: '#fef2f2',
+                            100: '#fee2e2',
+                            200: '#fecaca',
+                            300: '#fca5a5',
+                            400: '#f87171',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                            800: '#991b1b',
+                            900: '#7f1d1d',
+                            950: '#450a0a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #050505; color: #ffffff; }
+
+        /* Blood Drop Animation */
+        @keyframes bloodDrop {
+            0% { transform: translateY(-20px) scale(0.8); opacity: 0; }
+            20% { opacity: 0.6; }
+            100% { transform: translateY(100vh) scale(1); opacity: 0; }
+        }
+        .blood-drop {
+            position: fixed;
+            width: 8px;
+            height: 12px;
+            background: #dc2626;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            opacity: 0;
+            z-index: 0;
+            pointer-events: none;
+            animation: bloodDrop linear infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+        .pulse-ring {
+            animation: pulse-ring 2s ease-out infinite;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.15); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.1); }
+            56% { transform: scale(1); }
+        }
+        .heartbeat { animation: heartbeat 2s ease-in-out infinite; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+        .float-anim { animation: float 4s ease-in-out infinite; }
+        .float-anim-delay { animation: float 4s ease-in-out 1s infinite; }
+        .float-anim-delay2 { animation: float 4s ease-in-out 2s infinite; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-up { animation: fadeInUp 0.8s ease-out forwards; opacity: 0; }
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .slide-in-left { animation: slideInLeft 0.6s ease-out forwards; opacity: 0; }
+
+        @keyframes countUp {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .blood-glow {
+            box-shadow: 0 0 30px rgba(220, 38, 38, 0.15), 0 0 60px rgba(220, 38, 38, 0.05);
+        }
+
+        .blood-text-glow {
+            text-shadow: 0 0 40px rgba(220, 38, 38, 0.4);
+        }
+
+        .section-divider {
+            background: linear-gradient(to right, transparent, rgba(220, 38, 38, 0.3), transparent);
+            height: 1px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #991b1b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #dc2626; }
+
+        /* Timeline */
+        .timeline-line {
+            background: linear-gradient(to bottom, #dc2626, rgba(220, 38, 38, 0.1));
+        }
+
+        /* Feature card hover */
+        .feature-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(220, 38, 38, 0.3);
+            box-shadow: 0 8px 30px rgba(220, 38, 38, 0.1);
+        }
+
+        /* Nav active */
+        .nav-link {
+            position: relative;
+            transition: color 0.3s;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #dc2626;
+            transition: width 0.3s;
+        }
+        .nav-link:hover::after,
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        /* EKG Line */
+        @keyframes ekgLine {
+            0% { stroke-dashoffset: 1000; }
+            100% { stroke-dashoffset: 0; }
+        }
+
+        .progress-bar {
+            background: linear-gradient(to right, #dc2626, #ef4444);
+            transition: width 1s ease-out;
+        }
+
+        /* Print styles */
+        @media print {
+            body { background: white; color: black; }
+            .no-print { display: none !important; }
+            .glass-card { background: #f9f9f9; border: 1px solid #ddd; }
+        }
+    </style>
+</head>
+<body class="relative overflow-x-hidden">
+
+    <!-- Floating Blood Drops Background -->
+    <div id="bloodDrops" class="fixed inset-0 pointer-events-none z-0 no-print"></div>
+
+    <!-- Background Glow -->
+    <div class="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-blood-900/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+    <div class="fixed bottom-0 right-0 w-[500px] h-[500px] bg-blood-950/20 rounded-full blur-[100px] pointer-events-none z-0"></div>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" style="background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <a href="#hero" class="flex items-center gap-3 group">
+                <div class="relative w-10 h-10 flex items-center justify-center">
+                    <div class="absolute inset-0 bg-blood-600 rounded-lg opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                    <i data-lucide="heart-pulse" class="w-6 h-6 text-blood-500 relative z-10"></i>
+                </div>
+                <span class="text-sm font-semibold tracking-tight">BloodLink <span class="text-blood-500">AI</span></span>
+            </a>
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#abstract" class="nav-link text-xs font-medium text-gray-400 hover:text-white">Abstract</a>
+                <a href="#problem" class="nav-link text-xs font-medium text-gray-400 hover:text-white">Problem</a>
+                <a href="#objectives" class="nav-link text-xs font-medium text-gray-400 hover:text-white">Objectives</a>
+                <a href="#features" class="nav-link text-xs font-medium text-gray-400 hover:text-white">Features</a>
+                <a href="#methodology" class="nav-link text-xs font-medium text-gray-400 hover:text-white">Methodology</a>
+                <a href="#timeline" class="nav-link text-xs font-medium text-gray-400 hover:text-white">Timeline</a>
+                <a href="#team" class="nav-link text-xs font-medium text-gray-400 hover:text-white">Team</a>
+            </div>
+            <button id="mobileMenuBtn" class="md:hidden text-gray-400 hover:text-white transition-colors">
+                <i data-lucide="menu" class="w-5 h-5"></i>
+            </button>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="hidden md:hidden px-6 pb-4">
+            <div class="glass-card rounded-xl p-4 flex flex-col gap-3">
+                <a href="#abstract" class="mobile-nav text-sm text-gray-400 hover:text-white py-1">Abstract</a>
+                <a href="#problem" class="mobile-nav text-sm text-gray-400 hover:text-white py-1">Problem</a>
+                <a href="#objectives" class="mobile-nav text-sm text-gray-400 hover:text-white py-1">Objectives</a>
+                <a href="#features" class="mobile-nav text-sm text-gray-400 hover:text-white py-1">Features</a>
+                <a href="#methodology" class="mobile-nav text-sm text-gray-400 hover:text-white py-1">Methodology</a>
+                <a href="#timeline" class="mobile-nav text-sm text-gray-400 hover:text-white py-1">Timeline</a>
+                <a href="#team" class="mobile-nav text-sm text-gray-400 hover:text-white py-1">Team</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ==================== HERO SECTION ==================== -->
+    <section id="hero" class="relative min-h-screen flex items-center justify-center pt-20 pb-16 px-6 z-10">
+        <!-- EKG Line SVG -->
+        <svg class="absolute bottom-32 left-0 w-full h-16 opacity-10 pointer-events-none no-print" viewBox="0 0 1200 60" preserveAspectRatio="none">
+            <path d="M0,30 L200,30 L220,30 L240,10 L260,50 L280,5 L300,55 L320,30 L340,30 L1200,30"
+                  fill="none" stroke="#dc2626" stroke-width="2"
+                  stroke-dasharray="1000" stroke-dashoffset="1000"
+                  style="animation: ekgLine 4s linear infinite;" />
+        </svg>
+
+        <div class="max-w-5xl mx-auto text-center">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-8 fade-in-up">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blood-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-blood-500"></span>
+                </span>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-gray-400">Final Year Project Proposal</span>
+            </div>
+
+            <!-- Blood Drop Icon -->
+            <div class="flex justify-center mb-8 fade-in-up" style="animation-delay: 0.1s;">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-blood-500/20 rounded-full blur-xl pulse-ring"></div>
+                    <div class="relative w-20 h-20 bg-gradient-to-br from-blood-500 to-blood-700 rounded-full flex items-center justify-center heartbeat blood-glow">
+                        <i data-lucide="droplets" class="w-10 h-10 text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] mb-6 fade-in-up" style="animation-delay: 0.2s;">
+                AI-Based <span class="text-blood-500 blood-text-glow">Hospital-Centric</span><br>
+                Blood Donation &<br>
+                <span class="bg-gradient-to-r from-blood-400 to-blood-600 bg-clip-text text-transparent">Emergency Response</span> System
+            </h1>
+
+            <!-- Subtitle -->
+            <p class="text-lg md:text-xl text-gray-400 font-light max-w-2xl mx-auto mb-4 fade-in-up" style="animation-delay: 0.35s;">
+                With Demand Prediction for Gwadar
+            </p>
+
+            <!-- Team Quick Tags -->
+            <div class="flex flex-wrap justify-center gap-2 mb-10 fade-in-up" style="animation-delay: 0.45s;">
+                <span class="px-3 py-1 rounded-full text-[11px] font-medium bg-blood-950/50 border border-blood-900/30 text-blood-300">
+                    <i data-lucide="crown" class="w-3 h-3 inline mr-1"></i>Hafeez Ullah — Leader
+                </span>
+                <span class="px-3 py-1 rounded-full text-[11px] font-medium bg-white/5 border border-white/10 text-gray-400">Fareed</span>
+                <span class="px-3 py-1 rounded-full text-[11px] font-medium bg-white/5 border border-white/10 text-gray-400">Abdullah</span>
+                <span class="px-3 py-1 rounded-full text-[11px] font-medium bg-white/5 border border-white/10 text-gray-400">Sameer</span>
+                <span class="px-3 py-1 rounded-full text-[11px] font-medium bg-white/5 border border-white/10 text-gray-400">Tahira</span>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center fade-in-up" style="animation-delay: 0.55s;">
+                <a href="#abstract" class="inline-flex items-center justify-center gap-2 h-12 px-8 bg-blood-600 hover:bg-blood-500 text-white text-sm font-medium rounded-full transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blood-600/25">
+                    Read Proposal
+                    <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                </a>
+                <a href="#team" class="inline-flex items-center justify-center gap-2 h-12 px-8 bg-white/5 hover:bg-white/10 text-white text-sm font-medium rounded-full border border-white/10 hover:border-white/20 transition-all duration-300">
+                    Meet the Team
+                    <i data-lucide="users" class="w-4 h-4"></i>
+                </a>
+            </div>
+
+            <!-- Scroll Indicator -->
+            <div class="absolute bottom-8 left-1/2 -translate-x-1/2 fade-in-up no-print" style="animation-delay: 0.8s;">
+                <div class="flex flex-col items-center gap-2">
+                    <span class="text-[10px] uppercase tracking-widest text-gray-600">Scroll</span>
+                    <div class="w-5 h-8 border border-white/10 rounded-full flex justify-center pt-1.5">
+                        <div class="w-1 h-2 bg-blood-500 rounded-full animate-bounce"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== ABSTRACT ==================== -->
+    <section id="abstract" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="file-text" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 01</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-8 slide-in-left" style="animation-delay: 0.1s;">Abstract</h2>
+
+            <div class="glass-card rounded-2xl p-8 md:p-10 blood-glow slide-in-left" style="animation-delay: 0.2s;">
+                <p class="text-gray-300 font-light leading-relaxed text-[15px] mb-5">
+                    Blood availability is a critical factor in saving lives during medical emergencies. In Gwadar, the absence of a centralized and reliable blood management system results in delays in locating suitable donors. Existing methods rely on personal networks and social media, which are inefficient and unstructured.
+                </p>
+                <p class="text-gray-300 font-light leading-relaxed text-[15px] mb-5">
+                    This project proposes the development of a <span class="text-blood-400 font-medium">hospital-centric blood donation system</span> that connects hospitals and donors through a mobile application. Hospitals can post verified blood requests, and the system identifies and notifies nearby eligible donors using location-based services.
+                </p>
+                <p class="text-gray-300 font-light leading-relaxed text-[15px]">
+                    The system also includes an <span class="text-white font-medium">Emergency Broadcast feature</span> for urgent cases, distance calculation between donors and hospitals, and real-time hospital blood demand tracking. Additionally, an <span class="text-blood-400 font-medium">Artificial Intelligence (AI)-based demand prediction module</span> is incorporated to forecast future blood requirements based on historical hospital data.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== INTRODUCTION ==================== -->
+    <section id="introduction" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="book-open" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 02</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-8 slide-in-left" style="animation-delay: 0.1s;">Introduction</h2>
+
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="glass-card rounded-2xl p-8 slide-in-left" style="animation-delay: 0.2s;">
+                    <div class="w-12 h-12 rounded-xl bg-blood-600/10 flex items-center justify-center mb-5">
+                        <i data-lucide="alert-triangle" class="w-6 h-6 text-blood-500"></i>
+                    </div>
+                    <h3 class="text-lg font-medium mb-3">The Challenge</h3>
+                    <p class="text-gray-400 font-light leading-relaxed text-sm">
+                        Timely access to blood is essential in emergency healthcare. In Gwadar, the lack of a structured blood donation system leads to delays that can risk patient lives. Hospitals often struggle to quickly find donors, especially for rare blood groups.
+                    </p>
+                </div>
+                <div class="glass-card rounded-2xl p-8 slide-in-left" style="animation-delay: 0.3s;">
+                    <div class="w-12 h-12 rounded-xl bg-blood-600/10 flex items-center justify-center mb-5">
+                        <i data-lucide="lightbulb" class="w-6 h-6 text-blood-500"></i>
+                    </div>
+                    <h3 class="text-lg font-medium mb-3">Our Solution</h3>
+                    <p class="text-gray-400 font-light leading-relaxed text-sm">
+                        A smart hospital-driven blood donation system that ensures reliability, efficiency, and speed. By integrating real-time notifications, map-based location tracking, and AI-based predictions, the system will significantly improve emergency response and blood management in Gwadar.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PROBLEM STATEMENT ==================== -->
+    <section id="problem" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="alert-circle" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 03</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-8 slide-in-left" style="animation-delay: 0.1s;">Problem Statement</h2>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="glass-card rounded-xl p-6 feature-card slide-in-left" style="animation-delay: 0.15s;">
+                    <div class="w-10 h-10 rounded-lg bg-blood-950/50 flex items-center justify-center mb-4">
+                        <i data-lucide="server-off" class="w-5 h-5 text-blood-400"></i>
+                    </div>
+                    <p class="text-sm text-gray-300 font-light">No centralized hospital-based blood management system in Gwadar</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 feature-card slide-in-left" style="animation-delay: 0.25s;">
+                    <div class="w-10 h-10 rounded-lg bg-blood-950/50 flex items-center justify-center mb-4">
+                        <i data-lucide="map-pin-off" class="w-5 h-5 text-blood-400"></i>
+                    </div>
+                    <p class="text-sm text-gray-300 font-light">Difficulty in locating nearby donors quickly</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 feature-card slide-in-left" style="animation-delay: 0.35s;">
+                    <div class="w-10 h-10 rounded-lg bg-blood-950/50 flex items-center justify-center mb-4">
+                        <i data-lucide="unlink" class="w-5 h-5 text-blood-400"></i>
+                    </div>
+                    <p class="text-sm text-gray-300 font-light">Lack of coordination between hospitals and donors</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 feature-card slide-in-left" style="animation-delay: 0.45s;">
+                    <div class="w-10 h-10 rounded-lg bg-blood-950/50 flex items-center justify-center mb-4">
+                        <i data-lucide="brain" class="w-5 h-5 text-blood-400"></i>
+                    </div>
+                    <p class="text-sm text-gray-300 font-light">No predictive system for future blood demand</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 feature-card sm:col-span-2 lg:col-span-2 feature-card slide-in-left" style="animation-delay: 0.55s;">
+                    <div class="w-10 h-10 rounded-lg bg-blood-950/50 flex items-center justify-center mb-4">
+                        <i data-lucide="clock" class="w-5 h-5 text-blood-400"></i>
+                    </div>
+                    <p class="text-sm text-gray-300 font-light">Delays in emergency situations that risk patient lives</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== OBJECTIVES ==================== -->
+    <section id="objectives" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="target" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 04</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-8 slide-in-left" style="animation-delay: 0.1s;">Objectives</h2>
+
+            <!-- General Objective -->
+            <div class="glass-card rounded-2xl p-8 mb-8 blood-glow slide-in-left" style="animation-delay: 0.2s;">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-full bg-blood-600 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i data-lucide="bullseye" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-medium uppercase tracking-wider text-blood-400 mb-2 block">General Objective</span>
+                        <p class="text-gray-200 font-light leading-relaxed">
+                            To develop an intelligent hospital-centric blood donation system that improves emergency response and blood availability in Gwadar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Specific Objectives -->
+            <div class="space-y-3">
+                <span class="text-[10px] font-medium uppercase tracking-wider text-gray-500 slide-in-left" style="animation-delay: 0.3s;">Specific Objectives</span>
+                <div class="space-y-2">
+                    <div class="glass-card rounded-xl p-5 flex items-start gap-4 feature-card slide-in-left" style="animation-delay: 0.35s;">
+                        <span class="w-7 h-7 rounded-full bg-blood-950/50 border border-blood-900/30 flex items-center justify-center flex-shrink-0 text-xs font-semibold text-blood-400">1</span>
+                        <p class="text-sm text-gray-300 font-light pt-0.5">To enable hospitals to post verified blood requests</p>
+                    </div>
+                    <div class="glass-card rounded-xl p-5 flex items-start gap-4 feature-card slide-in-left" style="animation-delay: 0.4s;">
+                        <span class="w-7 h-7 rounded-full bg-blood-950/50 border border-blood-900/30 flex items-center justify-center flex-shrink-0 text-xs font-semibold text-blood-400">2</span>
+                        <p class="text-sm text-gray-300 font-light pt-0.5">To connect donors with hospitals in real-time</p>
+                    </div>
+                    <div class="glass-card rounded-xl p-5 flex items-start gap-4 feature-card slide-in-left" style="animation-delay: 0.45s;">
+                        <span class="w-7 h-7 rounded-full bg-blood-950/50 border border-blood-900/30 flex items-center justify-center flex-shrink-0 text-xs font-semibold text-blood-400">3</span>
+                        <p class="text-sm text-gray-300 font-light pt-0.5">To calculate and display distance between donors and hospitals</p>
+                    </div>
+                    <div class="glass-card rounded-xl p-5 flex items-start gap-4 feature-card slide-in-left" style="animation-delay: 0.5s;">
+                        <span class="w-7 h-7 rounded-full bg-blood-950/50 border border-blood-900/30 flex items-center justify-center flex-shrink-0 text-xs font-semibold text-blood-400">4</span>
+                        <p class="text-sm text-gray-300 font-light pt-0.5">To display all hospitals in Gwadar on an interactive map</p>
+                    </div>
+                    <div class="glass-card rounded-xl p-5 flex items-start gap-4 feature-card slide-in-left" style="animation-delay: 0.55s;">
+                        <span class="w-7 h-7 rounded-full bg-blood-950/50 border border-blood-900/30 flex items-center justify-center flex-shrink-0 text-xs font-semibold text-blood-400">5</span>
+                        <p class="text-sm text-gray-300 font-light pt-0.5">To implement an emergency broadcast system for urgent needs</p>
+                    </div>
+                    <div class="glass-card rounded-xl p-5 flex items-start gap-4 feature-card slide-in-left" style="animation-delay: 0.6s;">
+                        <span class="w-7 h-7 rounded-full bg-blood-950/50 border border-blood-900/30 flex items-center justify-center flex-shrink-0 text-xs font-semibold text-blood-400">6</span>
+                        <p class="text-sm text-gray-300 font-light pt-0.5">To track hospital-wise blood demand</p>
+                    </div>
+                    <div class="glass-card rounded-xl p-5 flex items-start gap-4 feature-card slide-in-left" style="animation-delay: 0.65s;">
+                        <span class="w-7 h-7 rounded-full bg-blood-950/50 border border-blood-900/30 flex items-center justify-center flex-shrink-0 text-xs font-semibold text-blood-400">7</span>
+                        <p class="text-sm text-gray-300 font-light pt-0.5">To develop an AI-based model for predicting blood demand trends</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SCOPE ==================== -->
+    <section id="scope" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="scan" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 05</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-8 slide-in-left" style="animation-delay: 0.1s;">Scope of the Project</h2>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div class="glass-card rounded-xl p-6 border-l-2 border-l-blood-600 slide-in-left" style="animation-delay: 0.2s;">
+                    <p class="text-sm text-gray-300 font-light">The system will be limited to <span class="text-white font-medium">Gwadar region</span></p>
+                </div>
+                <div class="glass-card rounded-xl p-6 border-l-2 border-l-blood-600 slide-in-left" style="animation-delay: 0.3s;">
+                    <p class="text-sm text-gray-300 font-light">Only <span class="text-white font-medium">hospitals</span> can create verified blood requests</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 border-l-2 border-l-blood-600 slide-in-left" style="animation-delay: 0.4s;">
+                    <p class="text-sm text-gray-300 font-light">Donors can <span class="text-white font-medium">register and respond</span> to requests</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 border-l-2 border-l-blood-600 slide-in-left" style="animation-delay: 0.5s;">
+                    <p class="text-sm text-gray-300 font-light"><span class="text-white font-medium">Real-time notifications</span> and map-based features</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 border-l-2 border-l-blood-600 sm:col-span-2 lg:col-span-2 slide-in-left" style="animation-delay: 0.6s;">
+                    <p class="text-sm text-gray-300 font-light">AI predictions will be based on <span class="text-white font-medium">hospital request data</span></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PROPOSED SYSTEM ==================== -->
+    <section id="proposed" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 06</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-4 slide-in-left" style="animation-delay: 0.1s;">Proposed System</h2>
+            <p class="text-gray-400 font-light mb-10 max-w-2xl slide-in-left" style="animation-delay: 0.15s;">
+                The proposed system consists of a mobile application and backend server designed to connect hospitals and donors efficiently.
+            </p>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Hospital Side -->
+                <div class="glass-card rounded-2xl overflow-hidden slide-in-left" style="animation-delay: 0.2s;">
+                    <div class="bg-gradient-to-r from-blood-900/30 to-transparent p-6 border-b border-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blood-600/20 flex items-center justify-center">
+                                <i data-lucide="hospital" class="w-5 h-5 text-blood-400"></i>
+                            </div>
+                            <h3 class="text-lg font-medium">Hospitals Can</h3>
+                        </div>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blood-500 flex-shrink-0"></i>
+                            <span class="text-sm text-gray-300 font-light">Register and log in</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blood-500 flex-shrink-0"></i>
+                            <span class="text-sm text-gray-300 font-light">Post blood requirements (blood group, units, urgency)</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blood-500 flex-shrink-0"></i>
+                            <span class="text-sm text-gray-300 font-light">Trigger emergency broadcast alerts</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Donor Side -->
+                <div class="glass-card rounded-2xl overflow-hidden slide-in-left" style="animation-delay: 0.3s;">
+                    <div class="bg-gradient-to-r from-blood-900/30 to-transparent p-6 border-b border-white/5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg bg-blood-600/20 flex items-center justify-center">
+                                <i data-lucide="heart-handshake" class="w-5 h-5 text-blood-400"></i>
+                            </div>
+                            <h3 class="text-lg font-medium">Donors Can</h3>
+                        </div>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blood-500 flex-shrink-0"></i>
+                            <span class="text-sm text-gray-300 font-light">Register with blood group, phone number, and location</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blood-500 flex-shrink-0"></i>
+                            <span class="text-sm text-gray-300 font-light">View nearby hospital requests</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blood-500 flex-shrink-0"></i>
+                            <span class="text-sm text-gray-300 font-light">See distance from hospital</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blood-500 flex-shrink-0"></i>
+                            <span class="text-sm text-gray-300 font-light">Receive real-time notifications</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blood-500 flex-shrink-0"></i>
+                            <span class="text-sm text-gray-300 font-light">Respond to emergency requests</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Module Note -->
+            <div class="mt-8 glass-card rounded-2xl p-8 blood-glow slide-in-left" style="animation-delay: 0.4s;">
+                <div class="flex items-start gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blood-600 to-blood-800 flex items-center justify-center flex-shrink-0">
+                        <i data-lucide="brain" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-base font-medium mb-2">AI Intelligence Module</h4>
+                        <p class="text-sm text-gray-400 font-light leading-relaxed">
+                            The system will display all hospitals in Gwadar on a map, calculate distance between donors and hospitals, and highlight which hospitals currently need blood. An AI module will analyze historical hospital request data to predict future demand trends.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SYSTEM FEATURES ==================== -->
+    <section id="features" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="layers" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 07</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-10 slide-in-left" style="animation-delay: 0.1s;">System Features</h2>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Feature 1 -->
+                <div class="glass-card rounded-2xl p-7 feature-card group slide-in-left" style="animation-delay: 0.15s;">
+                    <div class="w-12 h-12 rounded-xl bg-blood-950/50 border border-blood-900/30 flex items-center justify-center mb-5 group-hover:bg-blood-600/20 transition-colors">
+                        <i data-lucide="hospital" class="w-6 h-6 text-blood-400"></i>
+                    </div>
+                    <h3 class="text-base font-medium mb-3">Hospital-Based Request</h3>
+                    <p class="text-sm text-gray-400 font-light leading-relaxed mb-3">Hospitals post verified requests including blood group, units required, urgency level, and location.</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Blood Group</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Units</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Urgency</span>
+                    </div>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="glass-card rounded-2xl p-7 feature-card group slide-in-left" style="animation-delay: 0.25s;">
+                    <div class="w-12 h-12 rounded-xl bg-blood-950/50 border border-blood-900/30 flex items-center justify-center mb-5 group-hover:bg-blood-600/20 transition-colors">
+                        <i data-lucide="user-check" class="w-6 h-6 text-blood-400"></i>
+                    </div>
+                    <h3 class="text-base font-medium mb-3">Donor Management</h3>
+                    <p class="text-sm text-gray-400 font-light leading-relaxed mb-3">Register donors with blood group, phone number, location. Track donation history and eligibility.</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Registration</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">History</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Eligibility</span>
+                    </div>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="glass-card rounded-2xl p-7 feature-card group slide-in-left" style="animation-delay: 0.35s;">
+                    <div class="w-12 h-12 rounded-xl bg-blood-950/50 border border-blood-900/30 flex items-center justify-center mb-5 group-hover:bg-blood-600/20 transition-colors">
+                        <i data-lucide="map" class="w-6 h-6 text-blood-400"></i>
+                    </div>
+                    <h3 class="text-base font-medium mb-3">Map & Location</h3>
+                    <p class="text-sm text-gray-400 font-light leading-relaxed mb-3">Display all hospitals in Gwadar, nearby donors, and visual representation of requests.</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Hospitals</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Donors</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Visual</span>
+                    </div>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="glass-card rounded-2xl p-7 feature-card group slide-in-left" style="animation-delay: 0.45s;">
+                    <div class="w-12 h-12 rounded-xl bg-blood-950/50 border border-blood-900/30 flex items-center justify-center mb-5 group-hover:bg-blood-600/20 transition-colors">
+                        <i data-lucide="route" class="w-6 h-6 text-blood-400"></i>
+                    </div>
+                    <h3 class="text-base font-medium mb-3">Distance Calculation</h3>
+                    <p class="text-sm text-gray-400 font-light leading-relaxed mb-3">Calculate distance between donor and hospital showing distance (km) and estimated travel time.</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Distance</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">ETA</span>
+                    </div>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="glass-card rounded-2xl p-7 feature-card group slide-in-left" style="animation-delay: 0.55s;">
+                    <div class="w-12 h-12 rounded-xl bg-blood-950/50 border border-blood-900/30 flex items-center justify-center mb-5 group-hover:bg-blood-600/20 transition-colors">
+                        <i data-lucide="bar-chart-3" class="w-6 h-6 text-blood-400"></i>
+                    </div>
+                    <h3 class="text-base font-medium mb-3">Demand Tracking</h3>
+                    <p class="text-sm text-gray-400 font-light leading-relaxed mb-3">Display which hospitals need blood with real-time demand status updates.</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Real-time</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Hospital-wise</span>
+                    </div>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="glass-card rounded-2xl p-7 feature-card group slide-in-left" style="animation-delay: 0.65s;">
+                    <div class="w-12 h-12 rounded-xl bg-blood-950/50 border border-blood-900/30 flex items-center justify-center mb-5 group-hover:bg-blood-600/20 transition-colors">
+                        <i data-lucide="siren" class="w-6 h-6 text-blood-400"></i>
+                    </div>
+                    <h3 class="text-base font-medium mb-3">Emergency Broadcast</h3>
+                    <p class="text-sm text-gray-400 font-light leading-relaxed mb-3">Hospitals trigger emergency alerts to nearby matching blood group donors with details and urgency.</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Alert</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Urgent</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Broadcast</span>
+                    </div>
+                </div>
+
+                <!-- Feature 7 -->
+                <div class="glass-card rounded-2xl p-7 feature-card group slide-in-left" style="animation-delay: 0.75s;">
+                    <div class="w-12 h-12 rounded-xl bg-blood-950/50 border border-blood-900/30 flex items-center justify-center mb-5 group-hover:bg-blood-600/20 transition-colors">
+                        <i data-lucide="bell-ring" class="w-6 h-6 text-blood-400"></i>
+                    </div>
+                    <h3 class="text-base font-medium mb-3">Notification System</h3>
+                    <p class="text-sm text-gray-400 font-light leading-relaxed mb-3">Real-time push notifications with emergency alerts prioritized.</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Push</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Prioritized</span>
+                    </div>
+                </div>
+
+                <!-- Feature 8 -->
+                <div class="glass-card rounded-2xl p-7 feature-card group slide-in-left" style="animation-delay: 0.85s;">
+                    <div class="w-12 h-12 rounded-xl bg-blood-950/50 border border-blood-900/30 flex items-center justify-center mb-5 group-hover:bg-blood-600/20 transition-colors">
+                        <i data-lucide="trophy" class="w-6 h-6 text-blood-400"></i>
+                    </div>
+                    <h3 class="text-base font-medium mb-3">Leaderboard System</h3>
+                    <p class="text-sm text-gray-400 font-light leading-relaxed mb-3">Rank donors based on donations to encourage participation.</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Ranking</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Gamification</span>
+                    </div>
+                </div>
+
+                <!-- Feature 9 - AI -->
+                <div class="glass-card rounded-2xl p-7 feature-card group border-blood-900/30 slide-in-left" style="animation-delay: 0.95s;">
+                    <div class="absolute top-3 right-3">
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-medium uppercase tracking-wider bg-blood-600/20 text-blood-400 border border-blood-800/30">AI</span>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blood-600/30 to-blood-800/30 border border-blood-900/30 flex items-center justify-center mb-5 group-hover:from-blood-600/40 transition-colors">
+                        <i data-lucide="brain" class="w-6 h-6 text-blood-400"></i>
+                    </div>
+                    <h3 class="text-base font-medium mb-3">AI Demand Prediction</h3>
+                    <p class="text-sm text-gray-400 font-light leading-relaxed mb-3">Analyze hospital request history to predict blood group demand trends and future requirements per hospital.</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">ML Model</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Prediction</span>
+                        <span class="px-2 py-0.5 rounded text-[10px] bg-blood-950/50 text-blood-400">Trends</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== METHODOLOGY ==================== -->
+    <section id="methodology" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="workflow" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 08</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-10 slide-in-left" style="animation-delay: 0.1s;">Methodology</h2>
+
+            <div class="relative">
+                <!-- Vertical Line -->
+                <div class="absolute left-5 md:left-7 top-0 bottom-0 w-px timeline-line"></div>
+
+                <div class="space-y-6">
+                    <div class="flex items-start gap-5 slide-in-left" style="animation-delay: 0.15s;">
+                        <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-blood-600 flex items-center justify-center flex-shrink-0 z-10 text-sm font-bold">1</div>
+                        <div class="glass-card rounded-xl p-5 flex-1">
+                            <p class="text-sm text-gray-300 font-light">Requirement analysis and data collection</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-5 slide-in-left" style="animation-delay: 0.2s;">
+                        <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-blood-700 flex items-center justify-center flex-shrink-0 z-10 text-sm font-bold">2</div>
+                        <div class="glass-card rounded-xl p-5 flex-1">
+                            <p class="text-sm text-gray-300 font-light">System design (database and architecture)</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-5 slide-in-left" style="animation-delay: 0.25s;">
+                        <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-blood-800 flex items-center justify-center flex-shrink-0 z-10 text-sm font-bold">3</div>
+                        <div class="glass-card rounded-xl p-5 flex-1">
+                            <p class="text-sm text-gray-300 font-light">Backend development using <span class="text-blood-400 font-medium">Laravel</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-5 slide-in-left" style="animation-delay: 0.3s;">
+                        <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-blood-900 flex items-center justify-center flex-shrink-0 z-10 text-sm font-bold">4</div>
+                        <div class="glass-card rounded-xl p-5 flex-1">
+                            <p class="text-sm text-gray-300 font-light">Mobile app development using <span class="text-blood-400 font-medium">React Native</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-5 slide-in-left" style="animation-delay: 0.35s;">
+                        <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-blood-900 flex items-center justify-center flex-shrink-0 z-10 text-sm font-bold">5</div>
+                        <div class="glass-card rounded-xl p-5 flex-1">
+                            <p class="text-sm text-gray-300 font-light">Integration of maps and distance calculation</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-5 slide-in-left" style="animation-delay: 0.4s;">
+                        <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-blood-900 flex items-center justify-center flex-shrink-0 z-10 text-sm font-bold">6</div>
+                        <div class="glass-card rounded-xl p-5 flex-1">
+                            <p class="text-sm text-gray-300 font-light">Implementation of emergency broadcast system</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-5 slide-in-left" style="animation-delay: 0.45s;">
+                        <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-blood-900 flex items-center justify-center flex-shrink-0 z-10 text-sm font-bold">7</div>
+                        <div class="glass-card rounded-xl p-5 flex-1">
+                            <p class="text-sm text-gray-300 font-light">Development of AI model using <span class="text-blood-400 font-medium">Python</span></p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-5 slide-in-left" style="animation-delay: 0.5s;">
+                        <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-blood-900 flex items-center justify-center flex-shrink-0 z-10 text-sm font-bold">8</div>
+                        <div class="glass-card rounded-xl p-5 flex-1">
+                            <p class="text-sm text-gray-300 font-light">Integration and system testing</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-5 slide-in-left" style="animation-delay: 0.55s;">
+                        <div class="w-10 h-10 md:w-14 md:h-14 rounded-full bg-blood-950 border border-blood-800 flex items-center justify-center flex-shrink-0 z-10 text-sm font-bold">9</div>
+                        <div class="glass-card rounded-xl p-5 flex-1">
+                            <p class="text-sm text-gray-300 font-light">Deployment and documentation</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SYSTEM ARCHITECTURE ==================== -->
+    <section id="architecture" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="boxes" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 09</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-4 slide-in-left" style="animation-delay: 0.1s;">System Architecture</h2>
+            <p class="text-gray-400 font-light mb-10 max-w-2xl slide-in-left" style="animation-delay: 0.15s;">Technical stack and service architecture powering the system.</p>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="glass-card rounded-2xl p-6 text-center feature-card slide-in-left" style="animation-delay: 0.2s;">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-600/10 border border-blue-900/30 flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="smartphone" class="w-7 h-7 text-blue-400"></i>
+                    </div>
+                    <h4 class="text-sm font-medium mb-1">Frontend</h4>
+                    <p class="text-xs text-gray-500">React Native Mobile App</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center feature-card slide-in-left" style="animation-delay: 0.3s;">
+                    <div class="w-14 h-14 rounded-2xl bg-red-600/10 border border-red-900/30 flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="server" class="w-7 h-7 text-red-400"></i>
+                    </div>
+                    <h4 class="text-sm font-medium mb-1">Backend</h4>
+                    <p class="text-xs text-gray-500">Laravel API</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center feature-card slide-in-left" style="animation-delay: 0.4s;">
+                    <div class="w-14 h-14 rounded-2xl bg-orange-600/10 border border-orange-900/30 flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="database" class="w-7 h-7 text-orange-400"></i>
+                    </div>
+                    <h4 class="text-sm font-medium mb-1">Database</h4>
+                    <p class="text-xs text-gray-500">MySQL</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center feature-card slide-in-left" style="animation-delay: 0.5s;">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-600/10 border border-purple-900/30 flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="brain" class="w-7 h-7 text-purple-400"></i>
+                    </div>
+                    <h4 class="text-sm font-medium mb-1">AI Module</h4>
+                    <p class="text-xs text-gray-500">Python (ML Model)</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center feature-card sm:col-span-2 lg:col-span-2 slide-in-left" style="animation-delay: 0.6s;">
+                    <div class="flex justify-center gap-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-14 h-14 rounded-2xl bg-green-600/10 border border-green-900/30 flex items-center justify-center">
+                                <i data-lucide="map-pin" class="w-7 h-7 text-green-400"></i>
+                            </div>
+                            <div class="text-left">
+                                <h4 class="text-sm font-medium">Google Maps API</h4>
+                                <p class="text-xs text-gray-500">Location Services</p>
+                            </div>
+                        </div>
+                        <div class="w-px bg-white/5"></div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-14 h-14 rounded-2xl bg-yellow-600/10 border border-yellow-900/30 flex items-center justify-center">
+                                <i data-lucide="bell" class="w-7 h-7 text-yellow-400"></i>
+                            </div>
+                            <div class="text-left">
+                                <h4 class="text-sm font-medium">Firebase FCM</h4>
+                                <p class="text-xs text-gray-500">Push Notifications</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TOOLS & TECHNOLOGIES ==================== -->
+    <section id="tools" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="wrench" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 10</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-10 slide-in-left" style="animation-delay: 0.1s;">Tools & Technologies</h2>
+
+            <div class="flex flex-wrap gap-3 slide-in-left" style="animation-delay: 0.2s;">
+                <div class="px-5 py-3 rounded-xl glass-card feature-card flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-cyan-600/10 flex items-center justify-center"><i data-lucide="smartphone" class="w-4 h-4 text-cyan-400"></i></div>
+                    <span class="text-sm text-gray-300 font-light">React Native</span>
+                </div>
+                <div class="px-5 py-3 rounded-xl glass-card feature-card flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-red-600/10 flex items-center justify-center"><i data-lucide="code-2" class="w-4 h-4 text-red-400"></i></div>
+                    <span class="text-sm text-gray-300 font-light">Laravel Framework</span>
+                </div>
+                <div class="px-5 py-3 rounded-xl glass-card feature-card flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-orange-600/10 flex items-center justify-center"><i data-lucide="database" class="w-4 h-4 text-orange-400"></i></div>
+                    <span class="text-sm text-gray-300 font-light">MySQL Database</span>
+                </div>
+                <div class="px-5 py-3 rounded-xl glass-card feature-card flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-yellow-600/10 flex items-center justify-center"><i data-lucide="terminal" class="w-4 h-4 text-yellow-400"></i></div>
+                    <span class="text-sm text-gray-300 font-light">Python (Pandas, Scikit-learn)</span>
+                </div>
+                <div class="px-5 py-3 rounded-xl glass-card feature-card flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-green-600/10 flex items-center justify-center"><i data-lucide="map-pin" class="w-4 h-4 text-green-400"></i></div>
+                    <span class="text-sm text-gray-300 font-light">Google Maps API</span>
+                </div>
+                <div class="px-5 py-3 rounded-xl glass-card feature-card flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-amber-600/10 flex items-center justify-center"><i data-lucide="bell" class="w-4 h-4 text-amber-400"></i></div>
+                    <span class="text-sm text-gray-300 font-light">Firebase Cloud Messaging</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== EXPECTED OUTCOMES ==================== -->
+    <section id="outcomes" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="check-check" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 11</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-10 slide-in-left" style="animation-delay: 0.1s;">Expected Outcomes</h2>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="glass-card rounded-xl p-6 flex items-start gap-4 feature-card slide-in-left" style="animation-delay: 0.15s;">
+                    <div class="w-8 h-8 rounded-full bg-blood-600/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i data-lucide="zap" class="w-4 h-4 text-blood-400"></i>
+                    </div>
+                    <p class="text-sm text-gray-300 font-light">Faster and reliable donor matching</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 flex items-start gap-4 feature-card slide-in-left" style="animation-delay: 0.25s;">
+                    <div class="w-8 h-8 rounded-full bg-blood-600/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i data-lucide="timer" class="w-4 h-4 text-blood-400"></i>
+                    </div>
+                    <p class="text-sm text-gray-300 font-light">Reduced emergency response time</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 flex items-start gap-4 feature-card slide-in-left" style="animation-delay: 0.35s;">
+                    <div class="w-8 h-8 rounded-full bg-blood-600/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i data-lucide="handshake" class="w-4 h-4 text-blood-400"></i>
+                    </div>
+                    <p class="text-sm text-gray-300 font-light">Efficient coordination between hospitals and donors</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 flex items-start gap-4 feature-card slide-in-left" style="animation-delay: 0.45s;">
+                    <div class="w-8 h-8 rounded-full bg-blood-600/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-blood-400"></i>
+                    </div>
+                    <p class="text-sm text-gray-300 font-light">Increased donor engagement</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 flex items-start gap-4 feature-card sm:col-span-2 lg:col-span-2 slide-in-left" style="animation-delay: 0.55s;">
+                    <div class="w-8 h-8 rounded-full bg-blood-600/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i data-lucide="line-chart" class="w-4 h-4 text-blood-400"></i>
+                    </div>
+                    <p class="text-sm text-gray-300 font-light">Predictive insights for blood demand</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== LIMITATIONS ==================== -->
+    <section id="limitations" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="shield-alert" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 12</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-10 slide-in-left" style="animation-delay: 0.1s;">Limitations</h2>
+
+            <div class="grid sm:grid-cols-3 gap-5 slide-in-left" style="animation-delay: 0.2s;">
+                <div class="glass-card rounded-xl p-6 border-l-2 border-l-yellow-600/50">
+                    <div class="w-8 h-8 rounded-lg bg-yellow-600/10 flex items-center justify-center mb-4">
+                        <i data-lucide="map-pin" class="w-4 h-4 text-yellow-500"></i>
+                    </div>
+                    <p class="text-sm text-gray-400 font-light">Limited to Gwadar region</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 border-l-2 border-l-yellow-600/50">
+                    <div class="w-8 h-8 rounded-lg bg-yellow-600/10 flex items-center justify-center mb-4">
+                        <i data-lucide="building" class="w-4 h-4 text-yellow-500"></i>
+                    </div>
+                    <p class="text-sm text-gray-400 font-light">Requires hospital participation</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 border-l-2 border-l-yellow-600/50">
+                    <div class="w-8 h-8 rounded-lg bg-yellow-600/10 flex items-center justify-center mb-4">
+                        <i data-lucide="database" class="w-4 h-4 text-yellow-500"></i>
+                    </div>
+                    <p class="text-sm text-gray-400 font-light">Depends on accurate data for AI predictions</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TIMELINE ==================== -->
+    <section id="timeline" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="calendar-clock" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 13</span>
+            </div>
+            <div class="flex items-center gap-4 mb-10 slide-in-left" style="animation-delay: 0.1s;">
+                <h2 class="text-3xl md:text-4xl font-medium tracking-tight">Project Timeline</h2>
+                <span class="px-3 py-1 rounded-full text-[11px] font-medium bg-blood-950/50 border border-blood-900/30 text-blood-300">6 Months</span>
+            </div>
+
+            <div class="space-y-3">
+                <!-- Phase 1 -->
+                <div class="glass-card rounded-xl p-5 feature-card slide-in-left" style="animation-delay: 0.15s;">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                        <span class="text-xs font-semibold text-blood-400 w-20 flex-shrink-0">Phase 1</span>
+                        <p class="text-sm text-gray-300 font-light flex-1">Requirement Analysis & Research</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div class="progress-bar h-full rounded-full" style="width: 7.7%;"></div>
+                            </div>
+                            <span class="text-[11px] text-gray-500 w-16 text-right">2 Weeks</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Phase 2 -->
+                <div class="glass-card rounded-xl p-5 feature-card slide-in-left" style="animation-delay: 0.2s;">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                        <span class="text-xs font-semibold text-blood-400 w-20 flex-shrink-0">Phase 2</span>
+                        <p class="text-sm text-gray-300 font-light flex-1">System Design (ERD + Architecture)</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div class="progress-bar h-full rounded-full" style="width: 7.7%;"></div>
+                            </div>
+                            <span class="text-[11px] text-gray-500 w-16 text-right">2 Weeks</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Phase 3 -->
+                <div class="glass-card rounded-xl p-5 feature-card slide-in-left" style="animation-delay: 0.25s;">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                        <span class="text-xs font-semibold text-blood-400 w-20 flex-shrink-0">Phase 3</span>
+                        <p class="text-sm text-gray-300 font-light flex-1">UI/UX Design</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div class="progress-bar h-full rounded-full" style="width: 7.7%;"></div>
+                            </div>
+                            <span class="text-[11px] text-gray-500 w-16 text-right">2 Weeks</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Phase 4 -->
+                <div class="glass-card rounded-xl p-5 feature-card slide-in-left" style="animation-delay: 0.3s;">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                        <span class="text-xs font-semibold text-blood-400 w-20 flex-shrink-0">Phase 4</span>
+                        <p class="text-sm text-gray-300 font-light flex-1">Backend Development (Laravel)</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div class="progress-bar h-full rounded-full" style="width: 15.4%;"></div>
+                            </div>
+                            <span class="text-[11px] text-gray-500 w-16 text-right">4 Weeks</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Phase 5 -->
+                <div class="glass-card rounded-xl p-5 feature-card slide-in-left" style="animation-delay: 0.35s;">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                        <span class="text-xs font-semibold text-blood-400 w-20 flex-shrink-0">Phase 5</span>
+                        <p class="text-sm text-gray-300 font-light flex-1">Mobile App Development (React Native)</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div class="progress-bar h-full rounded-full" style="width: 15.4%;"></div>
+                            </div>
+                            <span class="text-[11px] text-gray-500 w-16 text-right">4 Weeks</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Phase 6 -->
+                <div class="glass-card rounded-xl p-5 feature-card slide-in-left" style="animation-delay: 0.4s;">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                        <span class="text-xs font-semibold text-blood-400 w-20 flex-shrink-0">Phase 6</span>
+                        <p class="text-sm text-gray-300 font-light flex-1">Map & Distance Integration</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div class="progress-bar h-full rounded-full" style="width: 7.7%;"></div>
+                            </div>
+                            <span class="text-[11px] text-gray-500 w-16 text-right">2 Weeks</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Phase 7 -->
+                <div class="glass-card rounded-xl p-5 feature-card slide-in-left" style="animation-delay: 0.45s;">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                        <span class="text-xs font-semibold text-blood-400 w-20 flex-shrink-0">Phase 7</span>
+                        <p class="text-sm text-gray-300 font-light flex-1">Emergency Broadcast System</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div class="progress-bar h-full rounded-full" style="width: 7.7%;"></div>
+                            </div>
+                            <span class="text-[11px] text-gray-500 w-16 text-right">2 Weeks</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Phase 8 -->
+                <div class="glass-card rounded-xl p-5 feature-card slide-in-left" style="animation-delay: 0.5s;">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                        <span class="text-xs font-semibold text-blood-400 w-20 flex-shrink-0">Phase 8</span>
+                        <p class="text-sm text-gray-300 font-light flex-1">AI Model Development</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div class="progress-bar h-full rounded-full" style="width: 11.5%;"></div>
+                            </div>
+                            <span class="text-[11px] text-gray-500 w-16 text-right">3 Weeks</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Phase 9 -->
+                <div class="glass-card rounded-xl p-5 feature-card slide-in-left" style="animation-delay: 0.55s;">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                        <span class="text-xs font-semibold text-blood-400 w-20 flex-shrink-0">Phase 9</span>
+                        <p class="text-sm text-gray-300 font-light flex-1">System Integration</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div class="progress-bar h-full rounded-full" style="width: 7.7%;"></div>
+                            </div>
+                            <span class="text-[11px] text-gray-500 w-16 text-right">2 Weeks</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Phase 10 -->
+                <div class="glass-card rounded-xl p-5 feature-card slide-in-left" style="animation-delay: 0.6s;">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                        <span class="text-xs font-semibold text-blood-400 w-20 flex-shrink-0">Phase 10</span>
+                        <p class="text-sm text-gray-300 font-light flex-1">Testing & Debugging</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div class="progress-bar h-full rounded-full" style="width: 7.7%;"></div>
+                            </div>
+                            <span class="text-[11px] text-gray-500 w-16 text-right">2 Weeks</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Phase 11 -->
+                <div class="glass-card rounded-xl p-5 feature-card slide-in-left" style="animation-delay: 0.65s;">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                        <span class="text-xs font-semibold text-blood-400 w-20 flex-shrink-0">Phase 11</span>
+                        <p class="text-sm text-gray-300 font-light flex-1">Final Documentation & Deployment</p>
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 h-1.5 rounded-full bg-white/5 overflow-hidden">
+                                <div class="progress-bar h-full rounded-full" style="width: 3.8%;"></div>
+                            </div>
+                            <span class="text-[11px] text-gray-500 w-16 text-right">1 Week</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FUTURE ENHANCEMENTS ==================== -->
+    <section id="future" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="rocket" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 14</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-10 slide-in-left" style="animation-delay: 0.1s;">Future Enhancements</h2>
+
+            <div class="grid sm:grid-cols-2 gap-5 slide-in-left" style="animation-delay: 0.2s;">
+                <div class="glass-card rounded-xl p-6 flex items-start gap-4 feature-card">
+                    <div class="w-8 h-8 rounded-full bg-green-600/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i data-lucide="globe" class="w-4 h-4 text-green-400"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium mb-1">City Expansion</h4>
+                        <p class="text-sm text-gray-500 font-light">Expansion to other cities (e.g., Turbat)</p>
+                    </div>
+                </div>
+                <div class="glass-card rounded-xl p-6 flex items-start gap-4 feature-card">
+                    <div class="w-8 h-8 rounded-full bg-blue-600/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i data-lucide="landmark" class="w-4 h-4 text-blue-400"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium mb-1">Government Integration</h4>
+                        <p class="text-sm text-gray-500 font-light">Integration with government hospitals</p>
+                    </div>
+                </div>
+                <div class="glass-card rounded-xl p-6 flex items-start gap-4 feature-card">
+                    <div class="w-8 h-8 rounded-full bg-purple-600/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i data-lucide="message-square" class="w-4 h-4 text-purple-400"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium mb-1">SMS Alerts</h4>
+                        <p class="text-sm text-gray-500 font-light">SMS-based alerts for low connectivity areas</p>
+                    </div>
+                </div>
+                <div class="glass-card rounded-xl p-6 flex items-start gap-4 feature-card">
+                    <div class="w-8 h-8 rounded-full bg-blood-600/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <i data-lucide="brain" class="w-4 h-4 text-blood-400"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-medium mb-1">Advanced AI</h4>
+                        <p class="text-sm text-gray-500 font-light">Advanced AI models for better prediction</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TEAM SECTION ==================== -->
+    <section id="team" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="users" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 15</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-4 slide-in-left" style="animation-delay: 0.1s;">Project Team</h2>
+            <p class="text-gray-400 font-light mb-12 max-w-2xl slide-in-left" style="animation-delay: 0.15s;">The dedicated team behind this life-saving initiative.</p>
+
+            <!-- Group Leader -->
+            <div class="mb-8 slide-in-left" style="animation-delay: 0.2s;">
+                <div class="glass-card rounded-2xl p-8 blood-glow relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-40 h-40 bg-blood-600/5 rounded-full blur-[60px]"></div>
+                    <div class="relative flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                        <div class="relative">
+                            <div class="absolute inset-0 bg-blood-600/20 rounded-full blur-lg pulse-ring"></div>
+                            <div class="relative w-24 h-24 rounded-full bg-gradient-to-br from-blood-500 to-blood-700 flex items-center justify-center text-3xl font-bold">
+                                HU
+                            </div>
+                            <div class="absolute -bottom-1 -right-1 w-8 h-8 bg-blood-600 rounded-full flex items-center justify-center">
+                                <i data-lucide="crown" class="w-4 h-4 text-white"></i>
+                            </div>
+                        </div>
+                        <div class="text-center sm:text-left">
+                            <span class="inline-block px-3 py-1 rounded-full text-[10px] font-medium uppercase tracking-wider bg-blood-600/20 text-blood-400 border border-blood-800/30 mb-3">Group Leader</span>
+                            <h3 class="text-2xl font-semibold mb-1">Hafeez Ullah</h3>
+                            <p class="text-sm text-gray-400 font-light">Project coordination, architecture design, and overall development oversight</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Members -->
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="glass-card rounded-2xl p-6 text-center feature-card slide-in-left" style="animation-delay: 0.3s;">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-700/20 border border-blue-900/30 flex items-center justify-center text-xl font-semibold mx-auto mb-4">
+                        FA
+                    </div>
+                    <span class="inline-block px-2 py-0.5 rounded text-[9px] font-medium uppercase tracking-wider bg-white/5 text-gray-500 mb-2">Member</span>
+                    <h4 class="text-base font-medium mb-1">Fareed</h4>
+                    <p class="text-xs text-gray-500 font-light">Development & Testing</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center feature-card slide-in-left" style="animation-delay: 0.4s;">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-green-500/20 to-green-700/20 border border-green-900/30 flex items-center justify-center text-xl font-semibold mx-auto mb-4">
+                        AB
+                    </div>
+                    <span class="inline-block px-2 py-0.5 rounded text-[9px] font-medium uppercase tracking-wider bg-white/5 text-gray-500 mb-2">Member</span>
+                    <h4 class="text-base font-medium mb-1">Abdullah</h4>
+                    <p class="text-xs text-gray-500 font-light">Backend & API Development</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center feature-card slide-in-left" style="animation-delay: 0.5s;">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-500/20 to-purple-700/20 border border-purple-900/30 flex items-center justify-center text-xl font-semibold mx-auto mb-4">
+                        SA
+                    </div>
+                    <span class="inline-block px-2 py-0.5 rounded text-[9px] font-medium uppercase tracking-wider bg-white/5 text-gray-500 mb-2">Member</span>
+                    <h4 class="text-base font-medium mb-1">Sameer</h4>
+                    <p class="text-xs text-gray-500 font-light">Mobile App Development</p>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center feature-card slide-in-left" style="animation-delay: 0.6s;">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500/20 to-pink-700/20 border border-pink-900/30 flex items-center justify-center text-xl font-semibold mx-auto mb-4">
+                        TA
+                    </div>
+                    <span class="inline-block px-2 py-0.5 rounded text-[9px] font-medium uppercase tracking-wider bg-white/5 text-gray-500 mb-2">Member</span>
+                    <h4 class="text-base font-medium mb-1">Tahira</h4>
+                    <p class="text-xs text-gray-500 font-light">AI Model & Research</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== CONCLUSION ==================== -->
+    <section id="conclusion" class="relative z-10 py-24 px-6">
+        <div class="section-divider max-w-3xl mx-auto mb-24"></div>
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center gap-3 mb-4 slide-in-left">
+                <div class="w-8 h-8 rounded-lg bg-blood-600/10 border border-blood-900/30 flex items-center justify-center">
+                    <i data-lucide="flag" class="w-4 h-4 text-blood-500"></i>
+                </div>
+                <span class="text-[10px] font-medium uppercase tracking-wider text-blood-500">Section 16</span>
+            </div>
+            <h2 class="text-3xl md:text-4xl font-medium tracking-tight mb-10 slide-in-left" style="animation-delay: 0.1s;">Conclusion</h2>
+
+            <div class="glass-card rounded-2xl p-8 md:p-12 blood-glow relative overflow-hidden slide-in-left" style="animation-delay: 0.2s;">
+                <div class="absolute top-0 left-0 w-60 h-60 bg-blood-600/5 rounded-full blur-[80px]"></div>
+                <div class="absolute bottom-0 right-0 w-40 h-40 bg-blood-800/5 rounded-full blur-[60px]"></div>
+                <div class="relative">
+                    <div class="flex justify-center mb-6">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blood-500 to-blood-700 flex items-center justify-center heartbeat">
+                            <i data-lucide="heart-pulse" class="w-8 h-8 text-white"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-300 font-light leading-relaxed text-center max-w-3xl mx-auto text-[15px]">
+                        The proposed system provides a <span class="text-white font-medium">reliable</span>, <span class="text-white font-medium">intelligent</span>, and <span class="text-blood-400 font-medium">hospital-driven</span> solution to blood donation challenges in Gwadar. By integrating real-time communication, location-based services, emergency broadcasting, and AI-based prediction, the system significantly improves healthcare response and has the potential to <span class="text-blood-400 font-medium">save lives</span>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="relative z-10 py-12 px-6 border-t border-white/5">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-blood-600/10 flex items-center justify-center">
+                        <i data-lucide="heart-pulse" class="w-4 h-4 text-blood-500"></i>
+                    </div>
+                    <span class="text-sm font-semibold tracking-tight">BloodLink <span class="text-blood-500">AI</span></span>
+                </div>
+                <p class="text-xs text-gray-600 text-center">
+                    Final Year Project Proposal — AI-Based Hospital-Centric Blood Donation & Emergency Response System
+                </p>
+                <div class="flex items-center gap-2 text-xs text-gray-600">
+                    <i data-lucide="users" class="w-3 h-3"></i>
+                    <span>Hafeez · Fareed · Abdullah · Sameer · Tahira</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== BACK TO TOP ==================== -->
+    <button id="backToTop" class="no-print fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full bg-blood-600 hover:bg-blood-500 text-white flex items-center justify-center shadow-lg shadow-blood-600/25 transition-all duration-300 opacity-0 translate-y-4 pointer-events-none">
+        <i data-lucide="arrow-up" class="w-5 h-5"></i>
+    </button>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Blood Drops Background
+        function createBloodDrops() {
+            const container = document.getElementById('bloodDrops');
+            const dropCount = 12;
+            for (let i = 0; i < dropCount; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'blood-drop';
+                drop.style.left = Math.random() * 100 + '%';
+                drop.style.animationDuration = (8 + Math.random() * 12) + 's';
+                drop.style.animationDelay = (Math.random() * 10) + 's';
+                drop.style.width = (4 + Math.random() * 6) + 'px';
+                drop.style.height = (6 + Math.random() * 10) + 'px';
+                drop.style.opacity = 0;
+                container.appendChild(drop);
+            }
+        }
+        createBloodDrops();
+
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                navbar.style.background = 'rgba(5, 5, 5, 0.9)';
+                navbar.style.backdropFilter = 'blur(12px)';
+                navbar.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+            } else {
+                navbar.style.background = 'linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)';
+                navbar.style.backdropFilter = 'none';
+                navbar.style.borderBottom = 'none';
+            }
+        });
+
+        // Back to top button
+        const backToTop = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 600) {
+                backToTop.style.opacity = '1';
+                backToTop.style.transform = 'translateY(0)';
+                backToTop.style.pointerEvents = 'auto';
+            } else {
+                backToTop.style.opacity = '0';
+                backToTop.style.transform = 'translateY(16px)';
+                backToTop.style.pointerEvents = 'none';
+            }
+        });
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Mobile menu toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        let menuOpen = false;
+        mobileMenuBtn.addEventListener('click', () => {
+            menuOpen = !menuOpen;
+            mobileMenu.classList.toggle('hidden');
+        });
+        // Close mobile menu on link click
+        document.querySelectorAll('.mobile-nav').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+                menuOpen = false;
+            });
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            root: null,
+            rootMargin: '0px 0px -60px 0px',
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationPlayState = 'running';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.slide-in-left, .fade-in-up').forEach(el => {
+            el.style.animationPlayState = 'paused';
+            observer.observe(el);
+        });
+
+        // Active nav link highlighting
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 150;
+                if (window.scrollY >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
